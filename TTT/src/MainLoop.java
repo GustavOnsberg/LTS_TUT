@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.ByteBuffer;
 import java.util.Random;
 import java.net.Socket;
 import java.io.*;
@@ -14,10 +15,12 @@ public class MainLoop extends JFrame implements ActionListener {
     //1 = X
     //2 = O
     public static Socket MySocket = null;
-    static Scanner sc;
+    static BufferedInputStream bi;
     public static MainLoop mainLoop = null;
     public static PrintWriter pw;
-    public static String fromServer;
+    public static int fromServer;
+    private static Object ByteBuffer;
+
     public static void main(String[] args){
         mainLoop = new MainLoop();
 
@@ -29,15 +32,15 @@ public class MainLoop extends JFrame implements ActionListener {
         mainLoop.setResizable(true);
 
         //I dette stykke kan man vælge hvor svært spillet skal være, som bestemmer om man forbinder til port 1102 eller 1105
-        int port = 1102;
-        System.out.println("Okay then, you will be connected to port 1102 *cough* coward *cough*");
+        int port = 1461;
+        System.out.println("connecting to "+port);
 
 
 
 
         try {
             MySocket = new Socket("itkomsrv.fotonik.dtu.dk",port);      //Opretter forbindelse til server med den valgte port
-            sc = new Scanner(MySocket.getInputStream());
+            bi = new BufferedInputStream(MySocket.getInputStream());
             loop();             //Starter loop-funktionen som er der hvor hele klientdelen af spillet finder sted.
         }catch(Exception e){
             System.out.println(e);
@@ -176,14 +179,14 @@ public class MainLoop extends JFrame implements ActionListener {
         pw.print(input+"\n\r");
         pw.flush();
     }
-    public static void loop() {
+    public static void loop() throws IOException {
         boolean running = true; //Bestemmer om loopet køre
               //Til at gemme beskeder fra servern
                 //Til at printe til server
         Scanner sc2 = new Scanner(System.in);   //Til at tage spillerens input
 
         while (running) {
-            fromServer = sc.nextLine(); //Tager beskeder fra server
+            fromServer = bi.read((byte[]) ByteBuffer,0,36); //Tager beskeder fra server
             System.out.println(fromServer);
 
 
