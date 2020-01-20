@@ -20,6 +20,7 @@ public class MainLoop extends JFrame implements ActionListener {
     public static PrintWriter pw;
     public static int fromServer;
     private static Object ByteBuffer;
+    static byte[] byteArray = new byte[1024];
 
     public static void main(String[] args){
         mainLoop = new MainLoop();
@@ -186,10 +187,12 @@ public class MainLoop extends JFrame implements ActionListener {
         Scanner sc2 = new Scanner(System.in);   //Til at tage spillerens input
 
         while (running) {
-            fromServer = bi.read((byte[]) ByteBuffer,0,36); //Tager beskeder fra server
-            System.out.println(fromServer);
+            System.out.println("Hi");
+            bi.read(byteArray,0,36); //Tager beskeder fra server
+            System.out.println("Hi2");
+            System.out.println(byteArray[3]);
 
-
+/*
             //Kigger på besked fra server og gør hvad der er passende til situationen
             if(fromServer.contains("YOUR TURN") && false){
                 try{
@@ -206,7 +209,7 @@ public class MainLoop extends JFrame implements ActionListener {
             }
             else if(fromServer.contains("BOARD IS")){
                 mainLoop.draw(fromServer.substring(9,18));
-            }
+            }*/
         }
     }
 }
