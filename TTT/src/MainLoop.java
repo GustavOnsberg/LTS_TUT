@@ -27,6 +27,9 @@ public class MainLoop extends JFrame implements ActionListener {
     static BigInteger X_i;
     static byte[] X_b = new byte[3];
 
+    static BigInteger X_i_0;
+    static byte[] X_b_0 = new byte[3];
+
 
 
     //0 = empty
@@ -60,6 +63,9 @@ public class MainLoop extends JFrame implements ActionListener {
     }
 
     public static String recieveString() throws IOException {
+        X_i = new BigInteger(String.valueOf(X_i_0));
+        X_b = X_i_0.toByteArray();
+
         byte[] byteArray = new byte[16];
         bi.read(byteArray,0,16);
         BigInteger c = new BigInteger("1");
@@ -71,9 +77,10 @@ public class MainLoop extends JFrame implements ActionListener {
             X_b = X_i.toByteArray();
             keyByte = X_b[X_b.length - 1];
             byteArray[i] = (byte) (byteArray[i] ^ keyByte);
+            System.out.print(byteArray[i]+" ");
         }
-
-        return new String(byteArray);
+        String s = new String(byteArray, StandardCharsets.US_ASCII);
+        return s;
     }
 
     public static void main(String[] args){
@@ -135,9 +142,9 @@ public class MainLoop extends JFrame implements ActionListener {
 
             for(int i = 0; i < 3; i++){
                 System.out.println("hhg "+i);
-                X_b[i] = arrayK[arrayK.length + i - 3];
+                X_b_0[i] = arrayK[arrayK.length + i - 3];
             }
-            X_i = new BigInteger(X_b);
+            X_i_0 = new BigInteger(X_b);
 
 
 
@@ -292,7 +299,8 @@ public class MainLoop extends JFrame implements ActionListener {
             //Kigger på besked fra server og gør hvad der er passende til situationen
 
             fromServer = recieveString();
-            System.out.println(fromServer);
+            if(!fromServer.equals(""))
+                System.out.println(fromServer);
 
             if(fromServer.contains("YOUR TURN") && false){
                 try{
