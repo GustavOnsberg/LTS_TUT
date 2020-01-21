@@ -5,9 +5,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.net.Socket;
 import java.io.*;
 import java.util.Scanner;
@@ -198,11 +195,12 @@ public class MainLoop extends JFrame implements ActionListener {
             for(int i = 0; i < 16; i++){
                 b2[i] = byteArray[i+18];
             }
-            System.out.println(new String(byteArray));
+            
+            /*System.out.println(new String(byteArray));
             BigInteger bigI1 = new BigInteger(b1);
             System.out.println(bigI1);
             BigInteger bigI2 = new BigInteger(b2);
-            System.out.println(bigI2);
+            System.out.println(bigI2);*/
             running = false;
 /*
             //Kigger på besked fra server og gør hvad der er passende til situationen
