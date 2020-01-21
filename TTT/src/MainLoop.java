@@ -7,22 +7,74 @@ import java.awt.event.ActionListener;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Random;
 import java.net.Socket;
 import java.io.*;
 import java.util.Scanner;
 
 public class MainLoop extends JFrame implements ActionListener {
+
+    static BigInteger g;
+    static BigInteger p;
+    static BigInteger A;
+
+    static BigInteger B;
+    static BigInteger b = new BigInteger("7");
+
+    static BigInteger K;
+
+    static BigInteger X_i;
+    static byte[] X_b = new byte[3];
+
+
+
     //0 = empty
     //1 = X
     //2 = O
     public static Socket MySocket = null;
     static BufferedInputStream bi;
+    static  BufferedOutputStream bo;
     public static MainLoop mainLoop = null;
     public static PrintWriter pw;
-    public static int fromServer;
+    public static String fromServer;
     private static Object ByteBuffer;
-    static byte[] byteArray = new byte[36];
+
+
+    public static void sendString(String message) throws IOException {
+        byte [] byteArray = message.getBytes();
+
+        BigInteger c = new BigInteger("1");
+        BigInteger a = new BigInteger("125");
+        byte keyByte;
+
+        for(int i = 0; i < byteArray.length;i++){
+            X_i = X_i.multiply(a).add(c).mod(new BigInteger("2")).pow(24);
+            X_b = X_i.toByteArray();
+            keyByte = X_b[X_b.length - 1];
+            byteArray[i] = (byte) (byteArray[i] ^ keyByte);
+        }
+
+        bo.write(byteArray);
+        bo.flush();
+    }
+
+    public static String recieveString() throws IOException {
+        byte[] byteArray = new byte[16];
+        bi.read(byteArray,0,16);
+        BigInteger c = new BigInteger("1");
+        BigInteger a = new BigInteger("125");
+        byte keyByte;
+
+        for(int i = 0; i < byteArray.length;i++){
+            X_i = X_i.multiply(a).add(c).mod(new BigInteger("2")).pow(24);
+            X_b = X_i.toByteArray();
+            keyByte = X_b[X_b.length - 1];
+            byteArray[i] = (byte) (byteArray[i] ^ keyByte);
+        }
+
+        return new String(byteArray);
+    }
 
     public static void main(String[] args){
         mainLoop = new MainLoop();
@@ -35,18 +87,65 @@ public class MainLoop extends JFrame implements ActionListener {
         mainLoop.setResizable(true);
 
         //I dette stykke kan man vælge hvor svært spillet skal være, som bestemmer om man forbinder til port 1102 eller 1105
-        int port = 1461;
+        int port = 1465;
         System.out.println("connecting to "+port);
 
 
 
 
         try {
+            byte[] byteArray = new byte[128];
             MySocket = new Socket("itkomsrv.fotonik.dtu.dk",port);      //Opretter forbindelse til server med den valgte port
             bi = new BufferedInputStream(MySocket.getInputStream());
+            bo = new BufferedOutputStream(MySocket.getOutputStream());
+
+
+
+            bi.read(byteArray,0,128); //Tager beskeder fra server
+            byte[] b1 = new byte[16];
+            byte[] b2 = new byte[16];
+            byte[] b3 = new byte[16];
+
+            int b = 77000;
+
+            for(int i = 0; i < 16; i++){
+                b1[i] = byteArray[i+2];
+            }
+            for(int i = 0; i < 16; i++){
+                b2[i] = byteArray[i+18];
+            }
+            for(int i = 0; i < 16; i++){
+                b3[i] = byteArray[i+34];
+            }
+            g = new BigInteger(b1);
+            System.out.println(g);
+            p = new BigInteger(b2);
+            System.out.println(p);
+            A = new BigInteger(b3);
+            System.out.println(A);
+
+            B = g.pow(b).mod(p);
+            System.out.println(B);
+
+            bo.write(B.toByteArray());
+            bo.flush();
+
+            K = A.pow(b).mod(p);
+            byte[] arrayK = K.toByteArray();
+
+            for(int i = 0; i < 3; i++){
+                System.out.println("hhg "+i);
+                X_b[i] = arrayK[arrayK.length + i - 3];
+            }
+            X_i = new BigInteger(X_b);
+
+
+
+
+
             loop();             //Starter loop-funktionen som er der hvor hele klientdelen af spillet finder sted.
         }catch(Exception e){
-            System.out.println(e);
+            e.printStackTrace();
         }
 
 
@@ -189,29 +288,16 @@ public class MainLoop extends JFrame implements ActionListener {
         Scanner sc2 = new Scanner(System.in);   //Til at tage spillerens input
 
         while (running) {
-            bi.read(byteArray,0,36); //Tager beskeder fra server
-            byte[] b1 = new byte[16];
-            byte[] b2 = new byte[16];
-            for(int i = 0; i < 16; i++){
-                b1[i] = byteArray[i+2];
-            }
-            for(int i = 0; i < 16; i++){
-                b2[i] = byteArray[i+18];
-            }
-            System.out.println(new String(byteArray));
-            BigInteger bigI1 = new BigInteger(b1);
-            System.out.println(bigI1);
-            BigInteger bigI2 = new BigInteger(b2);
-            System.out.println(bigI2);
-            running = false;
-/*
+
             //Kigger på besked fra server og gør hvad der er passende til situationen
+
+            fromServer = recieveString();
+            System.out.println(fromServer);
+
             if(fromServer.contains("YOUR TURN") && false){
                 try{
                     //Hvis det er spillerens tur, sender klienten et brugerinput til serveren
-                    pw = new PrintWriter(MySocket.getOutputStream());
-                    pw.print(sc2.next()+"\r\n");
-                    pw.flush();
+                    sendString(sc2.next()+"\r\n");
                 }catch(Exception e){
                     System.out.println(e);
                 }
@@ -221,7 +307,7 @@ public class MainLoop extends JFrame implements ActionListener {
             }
             else if(fromServer.contains("BOARD IS")){
                 mainLoop.draw(fromServer.substring(9,18));
-            }*/
+            }
         }
     }
 }
